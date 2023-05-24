@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Anime Library</title>
+</head>
+<body>
+<h1>Anime Library</h1>
+<table id="animeTable">
+    <thead>
+    <tr>
+        <th>Title</th>
+        <th>Format</th>
+        <th>Release Date</th>
+        <th>Genre</th>
+        <th>Status</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Display anime objects here dynamically -->
+    </tbody>
+</table>
+<h2>Add New Anime</h2>
+<form id="addAnimeForm">
+    <label>Title:</label>
+    <input type="text" name="title" required><br>
+    <label>Format:</label>
+    <input type="text" name="format" required><br>
+    <label>Release Date:</label>
+    <input type="text" name="releaseDate" required><br>
+    <label>Genre:</label>
+    <input type="text" name="genre" required><br>
+    <label>Status:</label>
+    <input type="text" name="status" required><br>
+    <input type="submit" value="Add">
+</form>
+
+<script src="jquery.min.js"></script>
+<script>
+    $(document).ready(function() {
+        loadAnime(); // Load anime objects on page load
+
+        // Handle form submission
+        $('#addAnimeForm').submit(function(event) {
+            event.preventDefault();
+            addAnime();
+        });
+    });
+
+    function loadAnime() {
+        $.ajax({
+            url: 'anime',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                // Clear the table body
+                $('#animeTable tbody').empty();
+
+                // Iterate through the data and append rows to the table
+                for (var i = 0; i < data.length; i++) {
+                    var anime = data[i];
+                    var row = '<tr>' +
+                        '<td>' + anime.title + '</td>' +
+                        '<td>' + anime.format + '</td>' +
+                        '<td>' + anime.releaseDate + '</td>' +
+                        '<td>' + anime.genre + '</td>' +
+                        '<td>' + anime.status + '</td>' +
+                        '</tr>';
+                    $('#animeTable tbody').append(row);
+                }
+            }
+        });
+    }
+
+    function addAnime() {
+        var form = $('#addAnimeForm');
+        var data = form.serialize();
+
+        $.ajax({
+            url: 'anime',
+            type: 'POST',
+            data: data,
+            success: function() {
+                // Clear the form fields
+                form.trigger('reset');
+
+                // Reload anime data
+                loadAnime();
+            }
+        });
+    }
+</script>
+</body>
+</html>

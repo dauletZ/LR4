@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Список аниме</title>
+    <link rel = "stylesheet" type="text/css" href="styles.css">
+    <meta charset="UTF-8">
+</head>
+<body>
+<h1>Список аниме</h1>
+<table id="animeTable">
+    <thead>
+    <tr>
+        <th>Название</th>
+        <th>Формат</th>
+        <th>Дата выпуска</th>
+        <th>Жанр</th>
+        <th>Статус</th>
+        <th>Действия</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Display anime objects here dynamically -->
+    </tbody>
+</table>
+<h2>Добавить новое</h2>
+<form id="addAnimeForm">
+    <label>Название:</label>
+    <input type="text" name="title" required><br>
+    <label>Формат:</label>
+    <input type="text" name="format" required><br>
+    <label>Дата выпуска:</label>
+    <input type="text" name="releaseDate" required><br>
+    <label>Жанр:</label>
+    <input type="text" name="genre" required><br>
+    <label>Статус:</label>
+    <input type="text" name="status" required><br>
+    <input type="submit" value="Добавить">
+</form>
+<!-- Edit Anime Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Редактировать</h2>
+        <form id="editAnimeForm">
+            <input type="hidden" name="id">
+            <label>Title:</label>
+            <input type="text" name="title" required><br>
+            <label>Format:</label>
+            <input type="text" name="format" required><br>
+            <label>Release Date:</label>
+            <input type="text" name="releaseDate" required><br>
+            <label>Genre:</label>
+            <input type="text" name="genre" required><br>
+            <label>Status:</label>
+            <input type="text" name="status" required><br>
+            <input type="submit" value="Сохранить">
+        </form>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        loadAnime(); // Load anime objects on page load
+
+        $('#addAnimeForm').submit(function(event) {
+            event.preventDefault();
+            addAnime();
+        });
+
+        $('#editAnimeForm').submit(function(event) {
+            event.preventDefault();
+            saveEditedAnime();
+        });
+
+        $('.close').click(function() {
+            $('#editModal').hide();
+        });
+    });
+
+    function loadAnime() {
+        $.ajax({
+            url: 'anime',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                // Clear the table body
+                $('#animeTable tbody').empty();
+
+                // Iterate through the data and append rows to the table
+                for (var i = 0; i < data.length; i++) {
+                    var anime = data[i];
+                    var row = '<tr>' +
+                        '<td>' + anime.title + '</td>' +
+                        '<td>' + anime.format + '</td>' +
+                        '<td>' + anime.releaseDate + '</td>' +
+                        '<td>' + anime.genre + '</td>' +
+                        '<td>' + anime.status + '</td>' +
+                        '<td>' +
+                        '<button onclick="editAnime(' + anime.id + ')">Изменить</button>' +
+                        '<button onclick="deleteAnime(' + anime.id + ')">Удалить</button>' +
+                        '</td>' +
+                        '</tr>';
+                    $('#animeTable tbody').append(row);
+                }
+            }
+        });
+    }
+
+    function addAnime() {
+        var formData = $('#addAnimeForm').serialize();
+        $.ajax({
+            url: 'anime',
+            type: 'POST',
+            data: formData,
+            success: function() {
+                loadAnime(); // Refresh anime list after adding
+                $('#addAnimeForm')[0].reset(); // Clear the form
+            }
+        });
+    }
+
+    function editAnime(animeId) {
+        $.ajax({
+            url: 'anime/' + animeId,
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                $('#editAnimeForm input[name="id"]').val(data.id);
+                $('#editAnimeForm input[name="title"]').val(data.title);
+                $('#editAnimeForm input[name="format"]').val(data.format);
+                $('#editAnimeForm input[name="releaseDate"]').val(data.releaseDate);
+                $('#editAnimeForm input[name="genre"]').val(data.genre);
+                $('#editAnimeForm input[name="status"]').val(data.status);
+
+                $('#editModal').show();
+            }
+        });
+    }
+
+    function saveEditedAnime() {
+        var formData = $('#editAnimeForm').serialize();
+        var animeId = $('#editAnimeForm input[name="id"]').val();
+        $.ajax({
+            url: 'anime/' + animeId,
+            type: 'PUT',
+            data: formData,
+            success: function() {
+                loadAnime();
+                $('#editModal').hide();
+            }
+        });
+    }
+
+    function deleteAnime(animeId) {
+        if (confirm('Вы хотите удалить данное аниме из списка?')) {
+            $.ajax({
+                url: 'anime/' + animeId,
+                type: 'DELETE',
+                success: function() {
+                    loadAnime();
+                }
+            });
+        }
+    }
+</script>
+</body>
+</html>
